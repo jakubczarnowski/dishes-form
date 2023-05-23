@@ -1,95 +1,191 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Container, Flex, Text, Button, useToast } from "@chakra-ui/react";
+import {
+  InputControl,
+  NumberInputControl,
+  SelectControl,
+} from "chakra-ui-react-hook-form";
+import { type Dish, useAddDish } from "@/api/useAddDish";
+
+const baseValidation = z.object({
+  name: z.string().min(3).max(255),
+  preparationTime: z.string().min(1),
+});
+
+const pizzaValidation = baseValidation.extend({
+  type: z.literal("pizza"),
+  noOfSlices: z.coerce.number().min(1).max(12),
+  diameter: z.coerce.number().max(50),
+});
+
+const soupValidation = baseValidation.extend({
+  type: z.literal("soup"),
+  spicinessScale: z.coerce.number().min(1).max(10),
+});
+
+const sandwichValidation = baseValidation.extend({
+  type: z.literal("sandwich"),
+  slicesOfBread: z.coerce.number().min(1).max(12),
+});
+const validationSchema = z.union([
+  pizzaValidation,
+  soupValidation,
+  sandwichValidation,
+]);
+
+const mapDish = (data: z.infer<typeof validationSchema>): Dish => {
+  switch (data.type) {
+    case "pizza":
+      return {
+        type: data.type,
+        diameter: data.diameter,
+        no_of_slices: data.noOfSlices,
+        name: data.name,
+        preparation_time: data.preparationTime,
+      };
+    case "soup":
+      return {
+        type: data.type,
+        spiciness_scale: data.spicinessScale,
+        name: data.name,
+        preparation_time: data.preparationTime,
+      };
+    case "sandwich":
+      return {
+        type: data.type,
+        slices_of_bread: data.slicesOfBread,
+        name: data.name,
+        preparation_time: data.preparationTime,
+      };
+  }
+};
 
 export default function Home() {
+  const toast = useToast();
+  const { mutateAsync, isLoading } = useAddDish();
+  const { control, handleSubmit, watch, reset } = useForm<
+    z.infer<typeof validationSchema>
+  >({
+    reValidateMode: "onChange",
+    mode: "onTouched",
+    defaultValues: {
+      name: "",
+      preparationTime: "",
+      diameter: 0,
+      noOfSlices: 0,
+      slicesOfBread: 0,
+      spicinessScale: 0,
+    },
+    resolver: zodResolver(validationSchema),
+  });
+
+  const foodType = watch("type");
+
+  const onSubmit = (data: z.infer<typeof validationSchema>) => {
+    console.log(data);
+    void mutateAsync(mapDish(data))
+      .then(() => {
+        toast({
+          title: "Dish added",
+          description: "Your dish was added successfully",
+          status: "success",
+          duration: 9000,
+          isClosable: true,
+        });
+        reset();
+      })
+      .catch((error) => {
+        if (!(error instanceof Error)) return;
+        toast({
+          title: "Error",
+          description: error?.message,
+          status: "error",
+          duration: 9000,
+          isClosable: true,
+        });
+      });
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <Container>
+      <Flex flexDirection="column" justifyContent="center" w="full" gap={4}>
+        <Text fontSize="6xl" fontWeight="bold" textAlign="center">
+          Foodie
+        </Text>
+        <Text fontSize="2xl" fontWeight="semibold" mb={2} textAlign="center">
+          Select your next meal!
+        </Text>
+        <InputControl
+          helperText="What do you call it?"
+          name="name"
+          label="Dish Name"
+          control={control}
         />
-      </div>
+        <InputControl
+          inputProps={{
+            type: "time",
+            step: 1,
+          }}
+          helperText="How long does it take to make?"
+          name="preparationTime"
+          label="Praparation time"
+          control={control}
+        />
 
-      <div className={styles.grid}>
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
+        <SelectControl
+          control={control}
+          helperText="What's your food type?"
+          name="type"
+          label="Food Type"
+          errorMessageText="Select a food type"
         >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
+          <option value=""></option>
+          <option value="pizza">Pizza</option>
+          <option value="soup">Soup</option>
+          <option value="sandwich">Sandwich</option>
+        </SelectControl>
+        {foodType === "pizza" && (
+          <>
+            <NumberInputControl
+              helperText="How many slices?"
+              name="noOfSlices"
+              label="Number of slices"
+              control={control}
+            />
+            <NumberInputControl
+              helperText="How big is it?"
+              name="diameter"
+              label="Diameter"
+              control={control}
+            />
+          </>
+        )}
+        {foodType === "soup" && (
+          <NumberInputControl
+            helperText="How spicy is it?"
+            name="spicinessScale"
+            label="Spiciness scale"
+            control={control}
+          />
+        )}
+        {foodType === "sandwich" && (
+          <NumberInputControl
+            helperText="How many slices of bread?"
+            name="slicesOfBread"
+            label="Slices of bread"
+            control={control}
+          />
+        )}
+        <Button
+          onClick={() => void handleSubmit(onSubmit)()}
+          isLoading={isLoading}
         >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+          Order!
+        </Button>
+      </Flex>
+    </Container>
+  );
 }
