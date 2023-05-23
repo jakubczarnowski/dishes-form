@@ -1,14 +1,10 @@
-"use client";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Container, Flex, Text, Button, useToast } from "@chakra-ui/react";
-import {
-  InputControl,
-  NumberInputControl,
-  SelectControl,
-} from "chakra-ui-react-hook-form";
-import { type Dish, useAddDish } from "@/api/useAddDish";
+'use client';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Container, Flex, Text, Button, useToast } from '@chakra-ui/react';
+import { InputControl, NumberInputControl, SelectControl } from 'chakra-ui-react-hook-form';
+import { type Dish, useAddDish } from '@/api/useAddDish';
 
 const baseValidation = z.object({
   name: z.string().min(3).max(255),
@@ -16,29 +12,25 @@ const baseValidation = z.object({
 });
 
 const pizzaValidation = baseValidation.extend({
-  type: z.literal("pizza"),
+  type: z.literal('pizza'),
   noOfSlices: z.coerce.number().min(1).max(12),
   diameter: z.coerce.number().max(50),
 });
 
 const soupValidation = baseValidation.extend({
-  type: z.literal("soup"),
+  type: z.literal('soup'),
   spicinessScale: z.coerce.number().min(1).max(10),
 });
 
 const sandwichValidation = baseValidation.extend({
-  type: z.literal("sandwich"),
+  type: z.literal('sandwich'),
   slicesOfBread: z.coerce.number().min(1).max(12),
 });
-const validationSchema = z.union([
-  pizzaValidation,
-  soupValidation,
-  sandwichValidation,
-]);
+const validationSchema = z.union([pizzaValidation, soupValidation, sandwichValidation]);
 
 const mapDish = (data: z.infer<typeof validationSchema>): Dish => {
   switch (data.type) {
-    case "pizza":
+    case 'pizza':
       return {
         type: data.type,
         diameter: data.diameter,
@@ -46,14 +38,14 @@ const mapDish = (data: z.infer<typeof validationSchema>): Dish => {
         name: data.name,
         preparation_time: data.preparationTime,
       };
-    case "soup":
+    case 'soup':
       return {
         type: data.type,
         spiciness_scale: data.spicinessScale,
         name: data.name,
         preparation_time: data.preparationTime,
       };
-    case "sandwich":
+    case 'sandwich':
       return {
         type: data.type,
         slices_of_bread: data.slicesOfBread,
@@ -66,14 +58,12 @@ const mapDish = (data: z.infer<typeof validationSchema>): Dish => {
 export default function Home() {
   const toast = useToast();
   const { mutateAsync, isLoading } = useAddDish();
-  const { control, handleSubmit, watch, reset } = useForm<
-    z.infer<typeof validationSchema>
-  >({
-    reValidateMode: "onChange",
-    mode: "onTouched",
+  const { control, handleSubmit, watch, reset } = useForm<z.infer<typeof validationSchema>>({
+    reValidateMode: 'onChange',
+    mode: 'onTouched',
     defaultValues: {
-      name: "",
-      preparationTime: "",
+      name: '',
+      preparationTime: '00:00:00',
       diameter: 0,
       noOfSlices: 0,
       slicesOfBread: 0,
@@ -82,16 +72,16 @@ export default function Home() {
     resolver: zodResolver(validationSchema),
   });
 
-  const foodType = watch("type");
+  const foodType = watch('type');
 
   const onSubmit = (data: z.infer<typeof validationSchema>) => {
     console.log(data);
     void mutateAsync(mapDish(data))
       .then(() => {
         toast({
-          title: "Dish added",
-          description: "Your dish was added successfully",
-          status: "success",
+          title: 'Dish added',
+          description: 'Your dish was added successfully',
+          status: 'success',
           duration: 9000,
           isClosable: true,
         });
@@ -100,9 +90,9 @@ export default function Home() {
       .catch((error) => {
         if (!(error instanceof Error)) return;
         toast({
-          title: "Error",
+          title: 'Error',
           description: error?.message,
-          status: "error",
+          status: 'error',
           duration: 9000,
           isClosable: true,
         });
@@ -126,7 +116,7 @@ export default function Home() {
         />
         <InputControl
           inputProps={{
-            type: "time",
+            type: 'time',
             step: 1,
           }}
           helperText="How long does it take to make?"
@@ -147,7 +137,7 @@ export default function Home() {
           <option value="soup">Soup</option>
           <option value="sandwich">Sandwich</option>
         </SelectControl>
-        {foodType === "pizza" && (
+        {foodType === 'pizza' && (
           <>
             <NumberInputControl
               helperText="How many slices?"
@@ -163,7 +153,7 @@ export default function Home() {
             />
           </>
         )}
-        {foodType === "soup" && (
+        {foodType === 'soup' && (
           <NumberInputControl
             helperText="How spicy is it?"
             name="spicinessScale"
@@ -171,7 +161,7 @@ export default function Home() {
             control={control}
           />
         )}
-        {foodType === "sandwich" && (
+        {foodType === 'sandwich' && (
           <NumberInputControl
             helperText="How many slices of bread?"
             name="slicesOfBread"
@@ -179,10 +169,7 @@ export default function Home() {
             control={control}
           />
         )}
-        <Button
-          onClick={() => void handleSubmit(onSubmit)()}
-          isLoading={isLoading}
-        >
+        <Button onClick={() => void handleSubmit(onSubmit)()} isLoading={isLoading}>
           Order!
         </Button>
       </Flex>

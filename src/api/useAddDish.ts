@@ -1,4 +1,4 @@
-import { useMutation } from "react-query";
+import { useMutation } from 'react-query';
 
 type DishCommon = {
   name: string;
@@ -6,30 +6,30 @@ type DishCommon = {
 };
 
 type DishSoup = DishCommon & {
-  type: "soup";
+  type: 'soup';
   spiciness_scale: number;
 };
 
 type DishPizza = DishCommon & {
-  type: "pizza";
+  type: 'pizza';
   no_of_slices: number;
   diameter: number;
 };
 
 type DishSandwich = DishCommon & {
-  type: "sandwich";
+  type: 'sandwich';
   slices_of_bread: number;
 };
 
 export type Dish = DishSoup | DishPizza | DishSandwich;
 // Usually would use T3 env, but for the sake of simplicity I'll use .env
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || '';
 
 const addDish = async (dish: Dish) => {
   const response = await fetch(`${BASE_URL}/dishes`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(dish),
   });
@@ -41,6 +41,6 @@ const addDish = async (dish: Dish) => {
 };
 
 export const useAddDish = () => {
-  const mutation = useMutation("addDish", addDish);
+  const mutation = useMutation('addDish', addDish);
   return mutation;
 };
