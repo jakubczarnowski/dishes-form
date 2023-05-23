@@ -76,30 +76,28 @@ export default function Home() {
 
   const foodType = watch('type');
 
-  const onSubmit = (data: z.infer<typeof validationSchema>) => {
-    console.log(data);
-    void mutateAsync(mapDish(data))
-      .then(() => {
-        toast({
-          title: 'Dish added',
-          description: 'Your dish was added successfully',
-          status: 'success',
-          duration: 9000,
-          isClosable: true,
-        });
-        reset();
-        setValue('type', 'pizza');
-      })
-      .catch((error) => {
-        if (!(error instanceof Error)) return;
-        toast({
-          title: 'Error',
-          description: error?.message,
-          status: 'error',
-          duration: 9000,
-          isClosable: true,
-        });
+  const onSubmit = async (data: z.infer<typeof validationSchema>) => {
+    try {
+      await mutateAsync(mapDish(data));
+      toast({
+        title: 'Dish added',
+        description: 'Your dish was added successfully',
+        status: 'success',
+        duration: 9000,
+        isClosable: true,
       });
+      reset();
+      setValue('type', 'pizza');
+    } catch (error) {
+      if (!(error instanceof Error)) throw error;
+      toast({
+        title: 'Error',
+        description: error?.message || 'There was an error adding a dish',
+        status: 'error',
+        duration: 9000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
