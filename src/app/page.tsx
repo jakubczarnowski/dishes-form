@@ -57,11 +57,11 @@ const mapDish = (data: z.infer<typeof validationSchema>): Dish => {
 
 export default function Home() {
   const toast = useToast();
-  const { mutateAsync, isLoading } = useAddDish();
+  const { mutateAsync: addDishMutatate, isLoading } = useAddDish();
   const { control, handleSubmit, watch, reset, setValue } = useForm<
     z.infer<typeof validationSchema>
   >({
-    reValidateMode: 'onChange',
+    reValidateMode: 'onSubmit',
     mode: 'onTouched',
     defaultValues: {
       name: '',
@@ -78,7 +78,7 @@ export default function Home() {
 
   const onSubmit = async (data: z.infer<typeof validationSchema>) => {
     try {
-      await mutateAsync(mapDish(data));
+      await addDishMutatate(mapDish(data));
       toast({
         title: 'Dish added',
         description: 'Your dish was added successfully',
