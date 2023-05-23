@@ -61,8 +61,8 @@ export default function Home() {
   const { control, handleSubmit, watch, reset, setValue } = useForm<
     z.infer<typeof validationSchema>
   >({
-    reValidateMode: 'onSubmit',
-    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    mode: 'onChange',
     defaultValues: {
       name: '',
       preparationTime: '00:00:00',
