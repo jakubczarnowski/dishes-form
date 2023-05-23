@@ -14,17 +14,17 @@ const baseValidation = z.object({
 const pizzaValidation = baseValidation.extend({
   type: z.literal('pizza'),
   noOfSlices: z.coerce.number().min(1).max(12),
-  diameter: z.coerce.number().max(50),
+  diameter: z.coerce.number().min(1).max(100, "I think 100cm is enough for a pizza, don't you?"),
 });
 
 const soupValidation = baseValidation.extend({
   type: z.literal('soup'),
-  spicinessScale: z.coerce.number().min(1).max(10),
+  spicinessScale: z.coerce.number().min(1).max(10, "Slow down, you can't handle that much spice!"),
 });
 
 const sandwichValidation = baseValidation.extend({
   type: z.literal('sandwich'),
-  slicesOfBread: z.coerce.number().min(1).max(12),
+  slicesOfBread: z.coerce.number().min(1).max(20, "That's a lot of bread!"),
 });
 const validationSchema = z.union([pizzaValidation, soupValidation, sandwichValidation]);
 
@@ -58,7 +58,9 @@ const mapDish = (data: z.infer<typeof validationSchema>): Dish => {
 export default function Home() {
   const toast = useToast();
   const { mutateAsync, isLoading } = useAddDish();
-  const { control, handleSubmit, watch, reset } = useForm<z.infer<typeof validationSchema>>({
+  const { control, handleSubmit, watch, reset, setValue } = useForm<
+    z.infer<typeof validationSchema>
+  >({
     reValidateMode: 'onChange',
     mode: 'onTouched',
     defaultValues: {
@@ -86,6 +88,7 @@ export default function Home() {
           isClosable: true,
         });
         reset();
+        setValue('type', 'pizza');
       })
       .catch((error) => {
         if (!(error instanceof Error)) return;
